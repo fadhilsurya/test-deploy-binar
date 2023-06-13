@@ -1,0 +1,35 @@
+name: CI/CD
+on:
+  pull_request:
+    branches: [main]
+  push:
+    branches: [main]
+  jobs:
+    build-and-deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - name: checkout repo
+        uses: actions/checkout@v2
+      - name: copy via ssh
+        uses: fadhilsurya/test-deploy-binar@main
+        with:
+          host: ${{ secrets.HOST }}
+          username: ${{ secrets.USERNAME }}
+          password: ${{ secrets.PASSWORD }}
+          port: 22
+          source: .,!node_modules
+          target: ~/app
+      - name: deploy
+        uses: fadhilsurya/test-deploy-binar@main
+        with:
+          host: ${{ secrets.HOST }}
+          username: ${{ secrets.USERNAME }}
+          password: ${{ secrets.PASSWORD }}
+          port: 2
+          script: |
+          export NVM_DIR=~/.nvm
+          source ~/.nvm/nvm.sh
+          cd ~/app
+          npm install --omit=dev
+          pm2 stop al
+          pm2 start ~/bin/www
